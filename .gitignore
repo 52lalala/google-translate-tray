@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Rust build output
+src-tauri/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# Icon source (generated icons are kept)
+icon-source.png
