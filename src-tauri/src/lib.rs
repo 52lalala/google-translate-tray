@@ -7,7 +7,10 @@ use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut,
 
 fn toggle_window(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
+        if window.is_minimized().unwrap_or(false) {
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+        } else if window.is_visible().unwrap_or(false) {
             let _ = window.hide();
         } else {
             let _ = window.show();
@@ -36,6 +39,7 @@ pub fn run() {
             .inner_size(1200.0, 800.0)
             .center()
             .visible(false)
+            .initialization_script(include_str!("../../src/inject.js"))
             .build()?;
 
             let show_item = MenuItem::with_id(app, "show", "显示/隐藏", true, None::<&str>)?;
@@ -43,6 +47,7 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
 
             let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("Google 翻译")
                 .menu(&menu)
                 .on_menu_event(|app, event| match event.id.as_ref() {
@@ -63,6 +68,9 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            let _ = _window.show();
+            let _ = _window.set_focus();
 
             app.handle().global_shortcut().on_shortcut(
                 Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyX),
