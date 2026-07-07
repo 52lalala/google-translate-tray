@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    padding: 24px;
+    background: #f5f5f5;
+    color: #333;
+    user-select: none;
+  }
+  h2 { margin-bottom: 20px; font-size: 18px; font-weight: 600; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; margin-bottom: 6px; color: #666; }
+  .field input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field input[type="text"]:focus { border-color: #4285f4; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle { position: relative; width: 44px; height: 24px; display: inline-block; }
+  .toggle input { display: none; }
+  .toggle .slider {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: #ccc; border-radius: 12px; cursor: pointer; transition: .2s;
+  }
+  .toggle .slider::before {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .2s;
+  }
+  .toggle input:checked + .slider { background: #4285f4; }
+  .toggle input:checked + .slider::before { transform: translateX(20px); }
+  .actions { margin-top: 24px; display: flex; gap: 8px; justify-content: flex-end; }
+  button {
+    padding: 8px 20px; border: none; border-radius: 6px;
+    font-size: 14px; cursor: pointer; transition: background .2s;
+  }
+  .btn-primary { background: #4285f4; color: white; }
+  .btn-primary:hover { background: #3367d6; }
+  .btn-cancel { background: #e0e0e0; color: #333; }
+  .btn-cancel:hover { background: #ccc; }
+  .msg { margin-top: 8px; font-size: 13px; color: #34a853; }
+</style>
+</head>
+<body>
+<h2>设置</h2>
+<div class="field">
+  <label>翻译网址</label>
+  <input type="text" id="urlInput" placeholder="https://translate.google.com">
+</div>
+<div class="field">
+  <div class="toggle-row">
+    <label style="margin-bottom:0;">开机自启</label>
+    <label class="toggle">
+      <input type="checkbox" id="autostartToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+</div>
+<div id="msg" class="msg" style="display:none;">已保存</div>
+<div class="actions">
+  <button class="btn-cancel" id="btnCancel">取消</button>
+  <button class="btn-primary" id="btnSave">保存</button>
+</div>
+
+<script>
+(function() {
+  var invoke = window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke;
+  if (!invoke) return;
+
+  var urlInput = document.getElementById('urlInput');
+  var autostartToggle = document.getElementById('autostartToggle');
+  var msg = document.getElementById('msg');
+
+  invoke('get_settings').then(function(s) {
+    urlInput.value = s.url;
+    autostartToggle.checked = s.autostart;
+  });
+
+  autostartToggle.addEventListener('change', function() {
+    invoke('set_autostart', { enabled: this.checked }).catch(function(e) {
+      autostartToggle.checked = !autostartToggle.checked;
+    });
+  });
+
+  document.getElementById('btnSave').addEventListener('click', function() {
+    var url = urlInput.value.trim();
+    if (!url) {
+      urlInput.focus();
+      return;
+    }
+    invoke('save_settings', { url: url }).then(function() {
+      msg.style.display = 'block';
+      setTimeout(function() { window.close(); }, 600);
+    }).catch(function(e) {
+      msg.style.display = 'block';
+      msg.style.color = '#ea4335';
+      msg.textContent = String(e);
+    });
+  });
+
+  document.getElementById('btnCancel').addEventListener('click', function() {
+    window.close();
+  });
+})();
+</script>
+</body>
+</html>

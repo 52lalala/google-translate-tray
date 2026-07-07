@@ -7,5 +7,9 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-store": "^2.4.3"
   }
 }
